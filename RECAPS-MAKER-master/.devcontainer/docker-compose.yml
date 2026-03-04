@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  supabase:
+    image: supabase/local-dev
+    ports:
+      - "54323:54323"
+    environment:
+      - SUPABASE_PASSWORD=postgres
+    volumes:
+      - ./supabase:/home/vscode/.supabase
