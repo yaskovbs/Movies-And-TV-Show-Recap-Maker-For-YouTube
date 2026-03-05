@@ -115,7 +115,10 @@ async function analyzeVideo({ file, fileName }) {
 async function processVideo({ 
   fileName, 
   settings,
-  videoDuration
+  videoDuration,
+  voiceoverAudioUrl,
+  musicEnabled,
+  musicSettings
 }) {
   try {
     if (!ffmpeg) throw new Error('FFmpeg not initialized. Call init first.');
@@ -165,7 +168,7 @@ async function processVideo({
     
     self.postMessage({ type: 'status', message: 'מרכיב את סרטון הסיכום...', progress: 40 });
     
-    // Apply filter complex and create output
+    // Apply filter complex and create output (video only)
     await ffmpeg.run(
       '-i', fileName,
       '-filter_complex', filterComplex,
@@ -173,33 +176,91 @@ async function processVideo({
       '-c:v', 'libx264',
       '-preset', 'medium',
       '-crf', '23',
+      '-an', // No audio
       'output.mp4'
     );
     
-    // Extract preview image
-    self.postMessage({ type: 'status', message: 'יוצר תמונת תצוגה מקדימה...', progress: 90 });
-    
-    await ffmpeg.run(
-      '-i', 'output.mp4',
-      '-ss', '00:00:03',
-      '-frames:v', '1',
-      'preview.jpg'
-    );
-    
-    // Read the results
-    const videoData = ffmpeg.FS('readFile', 'output.mp4');
-    const previewData = ffmpeg.FS('readFile', 'preview.jpg');
-    
-    self.postMessage({ 
-      type: 'processing-complete', 
-      result: {
-        videoData: new Uint8Array(videoData.buffer),
-        previewData: new Uint8Array(previewData.buffer),
-        duration: captureSeconds * concatInputs.length,
-        clips: concatInputs.length
-      },
-      progress: 100
-    });
+    // If voiceover audio provided, overlay it
+    if (voiceoverAudioUrl) {
+      self.postMessage({ type: 'status', message: 'מוסיף קריינות...', progress: 70 });
+      
+      // Fetch voiceover audio
+      const audioResponse = await fetch(voiceoverAudioUrl);
+      const audioArrayBuffer = await audioResponse.arrayBuffer();
+      const audioUint8Array = new Uint8Array(audioArrayBuffer);
+      
+      ffmpeg.FS('writeFile', 'voiceover.mp3', audioUint8Array);
+      
+      // Overlay audio on video (stretch audio to match video if needed)
+      await ffmpeg.run(
+        '-i', 'output.mp4',
+        '-i', 'voiceover.mp3',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-shortest',
+        '-map', '0:v:0',
+        '-map', '1:a:0?',
+        'final.mp4'
+      );
+      
+      // Read final video
+      const finalData = ffmpeg.FS('readFile', 'final.mp4');
+      
+      // Extract preview
+      self.postMessage({ type: 'status', message: 'יוצר תמונת תצוגה מקדימה...', progress: 95 });
+      await ffmpeg.run(
+        '-i', 'final.mp4',
+        '-ss', '00:00:03',
+        '-frames:v', '1',
+        'preview.jpg'
+      );
+      
+      const previewData = ffmpeg.FS('readFile', 'preview.jpg');
+      
+      self.postMessage({ 
+        type: 'processing-complete', 
+        result: {
+          videoData: new Uint8Array(finalData.buffer),
+          previewData: new Uint8Array(previewData.buffer),
+          duration: captureSeconds * concatInputs.length,
+          clips: concatInputs.length,
+          hasVoiceover: true
+        },
+        progress: 100
+      });
+      
+      // Cleanup
+      try {
+        ffmpeg.FS('unlink', 'voiceover.mp3');
+        ffmpeg.FS('unlink', 'final.mp4');
+      } catch (e) {}
+      
+    } else {
+      // No voiceover - use original output
+      self.postMessage({ type: 'status', message: 'יוצר תמונת תצוגה מקדימה...', progress: 90 });
+      
+      await ffmpeg.run(
+        '-i', 'output.mp4',
+        '-ss', '00:00:03',
+        '-frames:v', '1',
+        'preview.jpg'
+      );
+      
+      const videoData = ffmpeg.FS('readFile', 'output.mp4');
+      const previewData = ffmpeg.FS('readFile', 'preview.jpg');
+      
+      self.postMessage({ 
+        type: 'processing-complete', 
+        result: {
+          videoData: new Uint8Array(videoData.buffer),
+          previewData: new Uint8Array(previewData.buffer),
+          duration: captureSeconds * concatInputs.length,
+          clips: concatInputs.length,
+          hasVoiceover: false
+        },
+        progress: 100
+      });
+    }
     
   } catch (error) {
     self.postMessage({ type: 'error', error: 'Video processing failed: ' + error.message });

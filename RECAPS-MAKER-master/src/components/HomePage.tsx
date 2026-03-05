@@ -68,20 +68,6 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     
     initFFmpeg();
   }, []);
-                  message: `מעבד וידאו...`
-              }
-          }
-          return prev;
-      });
-    });
-    
-    setProcessingStatus({ stage: 'loading_engine', progress: 50, message: 'מפעיל את מנוע הווידאו...'});
-    await ffmpeg.load();
-
-    setProcessingStatus({ stage: 'loading_engine', progress: 100, message: 'מנוע הווידאו נטען בהצלחה!'});
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return ffmpeg;
-  };
 
   const handleCreateRecap = async () => {
     if (!selectedFile) {
@@ -292,10 +278,12 @@ const HomePage = ({ apiKey }: HomePageProps) => {
         {/* Content Analysis Panel */}
         <ContentAnalysisPanel 
           videoFile={selectedFile}
-          onScriptGenerated={(script) => {
+          onScriptGenerated={(script, analysisData) => {
             setSettings({
               ...settings,
-              script
+              script,
+              emotionalTone: analysisData?.emotionalTone || settings.emotionalTone,
+              genre: analysisData?.genre || settings.genre
             });
           }}
         />

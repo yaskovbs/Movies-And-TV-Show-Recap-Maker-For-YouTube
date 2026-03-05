@@ -288,12 +288,18 @@ class FFmpegService {
       this.addCallback('processing-complete', onComplete);
       this.addCallback('error', onErrorCallback);
 
+      // Check if we have a voiceover audio URL to include
+      const includeVoiceover = settings.voiceoverEnabled && settings.voiceoverAudioUrl;
+      
       this.worker?.postMessage({
         type: 'process',
         data: {
           fileName: file.name,
           settings,
-          videoDuration
+          videoDuration,
+          voiceoverAudioUrl: includeVoiceover ? settings.voiceoverAudioUrl : null,
+          musicEnabled: settings.musicEnabled || false,
+          musicSettings: settings.musicSettings || null
         }
       });
     });

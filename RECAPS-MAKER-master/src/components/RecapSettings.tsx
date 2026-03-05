@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import { Settings, Clock, Scissors, Globe, Youtube, Zap, ChevronDown } from 'lucide-react'
+import { Settings, Clock, Scissors, Globe, Youtube, Zap, ChevronDown, Mic, Music } from 'lucide-react'
 import { useState } from 'react'
 import type { RecapSettings } from '../types'
+import AudioSettingsPanel from './AudioSettingsPanel'
 
 interface RecapSettingsProps {
   settings: RecapSettings;
@@ -25,12 +26,17 @@ const RecapSettingsComponent = ({
   onSettingsChange 
 }: RecapSettingsProps) => {
   const [expandAdvanced, setExpandAdvanced] = useState(false)
+  const [expandAudio, setExpandAudio] = useState(false)
   
   const handleChange = (field: keyof RecapSettings, value: any) => {
     onSettingsChange({
       ...settings,
       [field]: value
     })
+  }
+  
+  const handleVoiceoverGenerated = (audioUrl: string) => {
+    handleChange('voiceoverAudioUrl', audioUrl);
   }
 
   const handleDurationChange = (part: 'hours' | 'minutes' | 'seconds', value: string) => {
@@ -169,6 +175,32 @@ const RecapSettingsComponent = ({
           </p>
         </div>
 
+        {/* הגדרות קריינות ומוזיקה */}
+        <button
+          type="button"
+          onClick={() => setExpandAudio(!expandAudio)}
+          className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-3 rounded-lg flex items-center justify-center space-x-2 space-x-reverse transition-colors"
+        >
+          <Music className="h-4 w-4" />
+          <span>🎵 הגדרות קריינות ומוזיקה</span>
+          <ChevronDown className={`h-4 w-4 transition-transform ${expandAudio ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {expandAudio && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <AudioSettingsPanel 
+              script={settings.script || ''} 
+              emotionalTone={settings.emotionalTone || 'neutral'} 
+              genre={settings.genre}
+              onVoiceoverGenerated={handleVoiceoverGenerated}
+            />
+          </motion.div>
+        )}
+        
         {/* הגדרות מתקדמות */}
         <button
           type="button"

@@ -6,7 +6,10 @@ import type { VideoFile } from '../types'
 
 interface ContentAnalysisPanelProps {
   videoFile: VideoFile | null;
-  onScriptGenerated?: (script: string) => void;
+  onScriptGenerated?: (script: string, analysisData?: {
+    emotionalTone: string;
+    genre: string;
+  }) => void;
 }
 
 interface AnalysisState {
@@ -133,7 +136,19 @@ const ContentAnalysisPanel = ({ videoFile, onScriptGenerated }: ContentAnalysisP
       });
       
       if (onScriptGenerated) {
+        // Pass the script and emotional tone to the parent component
         onScriptGenerated(script);
+        
+        // If we have a parent component that can handle the full analysis data
+        if (typeof onScriptGenerated === 'function' && onScriptGenerated.length > 1) {
+          const analysisData = {
+            script,
+            emotionalTone: analysisState.emotionalTone || 'neutral',
+            genre: analysisState.genre || 'unspecified'
+          };
+          // @ts-ignore - We're checking if the function can accept more parameters
+          onScriptGenerated(script, analysisData);
+        }
       }
     } catch (error) {
       setAnalysisState({

@@ -17,6 +17,24 @@ export interface RecapSettings {
   // הגדרות מתקדמות
   movieTitle?: string // כותרת הסרט/סדרה
   genre?: string // ז'אנר
+  emotionalTone?: string // טון רגשי
+  
+  // הגדרות קריינות ומוזיקה
+  voiceoverEnabled?: boolean // האם להפעיל קריינות
+  voiceoverAudioUrl?: string // קישור לקובץ הקריינות שנוצר
+  voiceSettings?: {
+    voice: string;
+    rate: number;
+    pitch: number;
+    volume: number;
+    apiProvider: 'browser' | 'google' | 'elevenlabs';
+  };
+  musicEnabled?: boolean // האם להפעיל מוזיקת רקע
+  musicSettings?: {
+    volume: number;
+    emotion: string;
+    intensity: number;
+  };
   
   // חיפוש באינטרנט
   enableWebSearch?: boolean // הפעלת חיפוש באינטרנט
