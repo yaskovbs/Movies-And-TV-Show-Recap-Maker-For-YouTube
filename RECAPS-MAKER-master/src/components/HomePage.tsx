@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Users, Zap, Shield, Cpu, FileText } from 'lucide-react'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 import VideoUploader from './VideoUploader'
 import EnhancedVideoUploader from './EnhancedVideoUploader'
 import RecapSettings from './RecapSettings'
@@ -9,6 +8,7 @@ import ProcessingStatus from './ProcessingStatus'
 import ResultsSection from './ResultsSection'
 import StatsSection from './StatsSection'
 import { supabase } from '../lib/supabase'
+import ffmpegService from '../lib/ffmpegService'
 import type { VideoFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType } from '../types'
 
 const getVideoDuration = (file: File): Promise<number> => {
@@ -47,27 +47,26 @@ const HomePage = ({ apiKey }: HomePageProps) => {
     apiKey: ''
   })
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatusType | null>(null)
-  const ffmpegRef = useRef<any>(null);
-
-  const loadFFmpeg = async () => {
-    if (ffmpegRef.current && ffmpegRef.current.isLoaded()) {
-      return ffmpegRef.current;
-    }
+  // Initialize FFmpeg service when component mounts
+  useEffect(() => {
+    const initFFmpeg = async () => {
+      try {
+        setProcessingStatus({ stage: 'loading_engine', progress: 0, message: 'טוען את מנוע הווידאו...'});
+        await ffmpegService.init({ logger: false });
+        setProcessingStatus({ stage: 'loading_engine', progress: 100, message: 'מנוע הווידאו נטען בהצלחה!'});
+        console.log('FFmpeg service initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize FFmpeg service:', error);
+        setProcessingStatus({ 
+          stage: 'error', 
+          progress: 0, 
+          message: `שגיאה בטעינת מנוע הווידאו: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`
+        });
+      }
+    };
     
-    setProcessingStatus({ stage: 'loading_engine', progress: 0, message: 'טוען את מנוע הווידאו...'});
-    
-    const ffmpeg = createFFmpeg({
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
-      log: false, // Disable verbose logs in console
-    });
-    ffmpegRef.current = ffmpeg;
-
-    ffmpeg.setProgress(({ ratio }) => {
-      setProcessingStatus(prev => {
-          if (prev?.stage === 'cutting_video') {
-              return {
-                  ...prev,
-                  progress: Math.round(ratio * 100),
+    initFFmpeg();
+  }, []);
                   message: `מעבד וידאו...`
               }
           }
@@ -93,53 +92,75 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       return;
     }
 
-    setProcessingStatus({ stage: 'analyzing_video', progress: 0, message: 'קורא מאפייני וידאו...'});
-    
     try {
-      const videoDuration = await getVideoDuration(selectedFile.file);
+      // Step 1: Analyze video to get duration
+      setProcessingStatus({ stage: 'analyzing_video', progress: 0, message: 'קורא מאפייני וידאו...'});
+      
+      let videoDuration;
+      try {
+        // First try to get duration using the HTML5 video element
+        videoDuration = await getVideoDuration(selectedFile.file);
+      } catch (error) {
+        console.warn('Failed to get duration using HTML5 video, trying FFmpeg analysis:', error);
+        
+        // If that fails, use FFmpeg to analyze the video
+        const metadata = await ffmpegService.analyzeVideo(
+          selectedFile.file,
+          (progress) => {
+            setProcessingStatus({ 
+              stage: 'analyzing_video', 
+              progress, 
+              message: `מנתח וידאו... ${progress}%` 
+            });
+          },
+          (error) => {
+            setProcessingStatus({ 
+              stage: 'error', 
+              progress: 0, 
+              message: `שגיאה בניתוח הווידאו: ${error}` 
+            });
+          }
+        );
+        
+        videoDuration = metadata.duration;
+      }
+      
       if (!videoDuration || !isFinite(videoDuration)) {
         throw new Error("לא ניתן היה לקבוע את אורך הווידאו. ייתכן שהקובץ פגום.");
       }
+      
       setProcessingStatus({ stage: 'analyzing_video', progress: 100, message: 'ניתוח הושלם!'});
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const ffmpeg = await loadFFmpeg();
-      
-      ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile.file));
-
-      setProcessingStatus({ stage: 'cutting_video', progress: 0, message: 'מרכיב את סרטון הסיכום...' });
-      
-      const numClips = Math.floor(settings.duration / settings.captureSeconds);
-      const filters: string[] = [];
-      const concatInputs: string[] = [];
-
-      for (let i = 0; i < numClips; i++) {
-        const startTime = i * settings.intervalSeconds;
-        if (startTime + settings.captureSeconds > videoDuration) {
-          console.warn(`Stopping early, video duration of ${videoDuration}s is not enough for all clips.`);
-          break;
+      // Step 2: Process video to create recap
+      const result = await ffmpegService.processVideo(
+        selectedFile.file,
+        settings,
+        videoDuration,
+        (progress) => {
+          setProcessingStatus({ 
+            stage: 'cutting_video', 
+            progress, 
+            message: `מעבד וידאו... ${progress}%` 
+          });
+        },
+        (status) => {
+          setProcessingStatus(prev => ({
+            ...prev,
+            ...status
+          }));
+        },
+        (error) => {
+          setProcessingStatus({ 
+            stage: 'error', 
+            progress: 0, 
+            message: `שגיאה בעיבוד הווידאו: ${error}` 
+          });
         }
-        filters.push(`[0:v]trim=start=${startTime}:end=${startTime + settings.captureSeconds},setpts=PTS-STARTPTS[v${i}]`);
-        concatInputs.push(`[v${i}]`);
-      }
-
-      if (concatInputs.length === 0) {
-        throw new Error("לא נוצרו קטעים. בדוק את אורך הווידאו והגדרות הסיכום.");
-      }
-
-      const filterComplex = `${filters.join(';')};${concatInputs.join('')}concat=n=${concatInputs.length}:v=1:a=0[outv]`;
-      
-      const outputFileName = 'recap.mp4';
-      await ffmpeg.run(
-        '-i', selectedFile.name,
-        '-filter_complex', filterComplex,
-        '-map', '[outv]',
-        '-y',
-        outputFileName
       );
-
-      const data = ffmpeg.FS('readFile', outputFileName);
-      const videoUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+      
+      // Create URL from the processed video data
+      const videoUrl = URL.createObjectURL(new Blob([result.videoData.buffer], { type: 'video/mp4' }));
 
       setProcessingStatus({ stage: 'saving', progress: 0, message: 'מתחיל שמירה בענן...' });
       const videoBlob = await fetch(videoUrl).then(r => r.blob());
@@ -167,9 +188,9 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       supabase.rpc('increment_recaps_created').then(({ error: rpcError }) => {
         if (rpcError) console.error('Failed to increment recap count:', rpcError);
       });
-
-      ffmpeg.FS('unlink', selectedFile.name);
-      ffmpeg.FS('unlink', outputFileName);
+      
+      // Clean up FFmpeg files
+      await ffmpegService.cleanFiles();
 
     } catch (error: any) {
       console.error("An error occurred during recap creation:", error);
