@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Film, Key, Menu, X, FileText, Shield, HelpCircle, Youtube, Mic } from 'lucide-react'
+import { Film, Key, Menu, X, FileText, Shield, HelpCircle, Youtube, Mic, Settings } from 'lucide-react'
 
 interface HeaderProps {
   apiKey: string
@@ -18,6 +18,8 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
     { path: '/voiceover', label: 'קריינות אודיו', icon: Mic },
     { path: '/faq', label: 'שאלות נפוצות', icon: HelpCircle },
     { path: '/contact', label: 'צור קשר', icon: null },
+    { path: '/settings/api-keys', label: 'הגדרות API', icon: Settings },
+    { path: '/settings/storage', label: 'הגדרות אחסון', icon: Settings },
     { path: '/terms', label: 'תנאי שימוש', icon: FileText },
     { path: '/privacy', label: 'מדיניות פרטיות', icon: Shield },
     { path: '/login', label: 'התחבר', icon: Key }

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Play, Users, Zap, Shield, Cpu, FileText } from 'lucide-react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 import VideoUploader from './VideoUploader'
+import EnhancedVideoUploader from './EnhancedVideoUploader'
 import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
 import ResultsSection from './ResultsSection'
@@ -215,7 +216,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           <h3 className="text-2xl font-bold text-white mb-6">
             שלב 1: העלאת וידאו
           </h3>
-          <VideoUploader
+          <EnhancedVideoUploader
             selectedFile={selectedFile}
             onFileSelect={(file) => setSelectedFile(file)}
             onRemoveFile={() => setSelectedFile(null)}

@@ -9,6 +9,8 @@ import TermsOfServicePage from './components/TermsOfServicePage'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import VoiceoverPage from './components/VoiceoverPage'
 import AuthPage from './components/AuthPage'
+import APIKeysSettings from './components/APIKeysSettings'
+import StorageSettings from './components/StorageSettings'
 import { supabase } from './lib/supabase'
 
 function App() {
@@ -49,6 +51,8 @@ function App() {
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/settings/api-keys" element={<APIKeysSettings />} />
+          <Route path="/settings/storage" element={<StorageSettings />} />
         </Routes>
       </main>
       <Footer />
