@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Users, Zap, Shield, Cpu, FileText } from 'lucide-react'
+import { Play, Users, Zap, Shield, Cpu, FileText, Brain } from 'lucide-react'
 import VideoUploader from './VideoUploader'
 import EnhancedVideoUploader from './EnhancedVideoUploader'
 import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
 import ResultsSection from './ResultsSection'
 import StatsSection from './StatsSection'
+import ContentAnalysisPanel from './ContentAnalysisPanel'
 import { supabase } from '../lib/supabase'
 import ffmpegService from '../lib/ffmpegService'
 import type { VideoFile, RecapSettings as RecapSettingsType, ProcessingStatus as ProcessingStatusType } from '../types'
@@ -257,6 +258,10 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             <div className="flex items-center mb-4">
                 <FileText className="h-6 w-6 text-blue-400 ml-3" />
                 <h2 className="text-xl font-semibold text-white">שלב 2: הוספת תסריט</h2>
+                <div className="flex items-center mr-auto">
+                  <Brain className="h-5 w-5 text-purple-400 ml-1" />
+                  <span className="text-sm text-purple-300">ניתן לנתח את הוידאו עם AI למטה</span>
+                </div>
             </div>
             <p className="text-gray-400 mb-4 text-sm">הדבק כאן את התסריט שלך. הקריינות תיווצר על בסיס טקסט זה.</p>
             <textarea
@@ -283,6 +288,17 @@ const HomePage = ({ apiKey }: HomePageProps) => {
           <Play className="inline-block h-5 w-5 ml-2" />
           צור סיכום וידאו
         </motion.button>
+        
+        {/* Content Analysis Panel */}
+        <ContentAnalysisPanel 
+          videoFile={selectedFile}
+          onScriptGenerated={(script) => {
+            setSettings({
+              ...settings,
+              script
+            });
+          }}
+        />
       </motion.div>
     );
   };

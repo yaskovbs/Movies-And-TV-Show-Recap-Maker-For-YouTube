@@ -39,6 +39,20 @@ export interface ProcessingStatus {
   output?: RecapOutput
 }
 
+export interface ContentAnalysis {
+  summary: string;
+  keyMoments: {
+    time: number;
+    description: string;
+    importance: number; // 1-10
+    emotion?: string;
+  }[];
+  genre: string;
+  emotionalTone: string;
+  suggestedTitle: string;
+  suggestedTags: string[];
+}
+
 export interface Stats {
   recapsCreated: number
   activeUsers: number
