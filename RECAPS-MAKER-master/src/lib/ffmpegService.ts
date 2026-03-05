@@ -59,7 +59,7 @@ class FFmpegService {
 
   private initWorker() {
     try {
-      this.worker = new Worker('/ffmpeg-worker.js');
+      this.worker = new Worker(new URL('/ffmpeg-worker.js', import.meta.url), { type: 'module' });
       this.setupWorkerListeners();
     } catch (error) {
       console.error('Failed to initialize FFmpeg worker:', error);

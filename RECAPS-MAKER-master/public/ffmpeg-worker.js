@@ -1,8 +1,9 @@
 // FFmpeg Worker for processing videos in a separate thread
-importScripts('https://unpkg.com/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js');
+importScripts('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm');
 
 // Initialize FFmpeg
-const { createFFmpeg, fetchFile } = FFmpeg;
+const { FFmpeg } = FFmpegWASM;
+const { fetchFile } = FFmpegWASM;
 let ffmpeg = null;
 
 // Handle messages from main thread
@@ -58,20 +59,28 @@ self.onmessage = async function(e) {
 // Initialize FFmpeg with optional progress callback
 async function initFFmpeg(config = {}) {
   try {
-    const { logger = true, corePath = 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' } = config;
+    const { logger = true } = config;
     
-    ffmpeg = createFFmpeg({ 
-      log: logger,
-      corePath,
-      progress: ({ ratio }) => {
-        self.postMessage({ 
-          type: 'progress', 
-          progress: Math.round(ratio * 100)
-        });
+    ffmpeg = new FFmpeg();
+    
+    ffmpeg.on('log', ({ message }) => {
+      if (logger) {
+        console.log(message);
       }
     });
     
-    await ffmpeg.load();
+    ffmpeg.on('progress', ({ ratio }) => {
+      self.postMessage({ 
+        type: 'progress', 
+        progress: Math.round(ratio * 100)
+      });
+    });
+    
+    await ffmpeg.load({
+      coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+      wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+    });
+    
     self.postMessage({ type: 'ready' });
   } catch (error) {
     self.postMessage({ type: 'error', error: 'Failed to initialize FFmpeg: ' + error.message });
