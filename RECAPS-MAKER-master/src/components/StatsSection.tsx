@@ -58,7 +58,7 @@ const fetchStats = async (retries = 3) => {
         rating_count: Number(statsJson.rating_count) || fallbackStats.rating_count,
         active_users: Number(statsJson.active_users) || fallbackStats.active_users,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Detailed error fetching stats:', e);
       console.log('Using fallback stats');
       setStats(fallbackStats);
@@ -71,33 +71,32 @@ const fetchStats = async (retries = 3) => {
   useEffect(() => {
     fetchStats();
 
-    // Simplified realtime - only if stats loaded successfully
-    if (stats) {
-      const statsChannel = supabase
-        .channel('app_stats_changes')
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'app_stats' },
-          (payload) => {
-            const newStatsData = payload.new as { recaps_created: number; total_rating_sum: number; rating_count: number; };
-            setStats(prevStats => {
-              if (!prevStats) return prevStats;
-              return {
-                ...prevStats,
-                recaps_created: newStatsData.recaps_created || prevStats.recaps_created,
-                total_rating_sum: newStatsData.total_rating_sum || prevStats.total_rating_sum,
-                rating_count: newStatsData.rating_count || prevStats.rating_count,
-              };
-            });
-          }
-        )
-        .subscribe();
+    // Subscribe to realtime stat changes
+    const statsChannel = supabase
+      .channel('app_stats_changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'app_stats' },
+        (payload) => {
+          const newStatsData = payload.new as { recaps_created: number; total_rating_sum: number; rating_count: number; };
+          setStats(prevStats => {
+            if (!prevStats) return prevStats;
+            return {
+              ...prevStats,
+              recaps_created: newStatsData.recaps_created || prevStats.recaps_created,
+              total_rating_sum: newStatsData.total_rating_sum || prevStats.total_rating_sum,
+              rating_count: newStatsData.rating_count || prevStats.rating_count,
+            };
+          });
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(statsChannel);
-      };
-    }
-  }, [stats]);
+    return () => {
+      supabase.removeChannel(statsChannel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRating = async (rating: number) => {
     if (hasRated || isRating) return;

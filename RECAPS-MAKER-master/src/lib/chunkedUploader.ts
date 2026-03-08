@@ -40,10 +40,7 @@ class ChunkedUploader {
     options: UploadOptions = {}
   ): Promise<string> {
     const {
-      onProgress,
-      onError,
       onSuccess,
-      chunkSize = 5 * 1024 * 1024, // 5MB default
       storageService = 'supabase'
     } = options;
 
@@ -125,7 +122,7 @@ class ChunkedUploader {
 
     // For files smaller than the chunk size, upload directly
     if (totalSize <= chunkSize) {
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('recaps')
         .upload(path, file, {
           cacheControl: '3600',
@@ -198,10 +195,10 @@ class ChunkedUploader {
   }
 
   private async uploadToFirebase(
-    file: File,
+    _file: File,
     path: string,
-    uploadId: string,
-    options: UploadOptions
+    _uploadId: string,
+    _options: UploadOptions
   ): Promise<string> {
     // Firebase implementation would go here
     // This is a placeholder for now
@@ -211,7 +208,7 @@ class ChunkedUploader {
   private async uploadToLocalStorage(
     file: File,
     path: string,
-    uploadId: string,
+    _uploadId: string,
     options: UploadOptions
   ): Promise<string> {
     return new Promise((resolve, reject) => {

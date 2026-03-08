@@ -48,7 +48,7 @@ const ResultsSection = ({ output }: ResultsSectionProps) => {
         video.removeEventListener('ended', handlePause);
       };
     }
-  }, [videoRef.current]);
+  }, []);
 
   return (
     <motion.div

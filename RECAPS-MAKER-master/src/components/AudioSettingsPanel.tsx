@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Music, Mic, Volume2, Settings, Play, Pause, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import { Mic, Play, Pause, AlertCircle, CheckCircle } from 'lucide-react'
 import audioManager, { VoiceSettings } from '../lib/audioManager'
-import contentAnalyzer from '../lib/contentAnalyzer'
 
 interface AudioSettingsPanelProps {
   script: string;
@@ -101,7 +100,7 @@ const AudioSettingsPanel = ({
         previewAudio.src = '';
       }
     };
-  }, [emotionalTone, genre]);
+  }, [emotionalTone, genre, previewAudio]);
   
   // Handle voice change
   const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

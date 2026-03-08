@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, X, File, AlertCircle, CheckCircle, Loader } from 'lucide-react'
+import { Upload, X, File, AlertCircle, CheckCircle } from 'lucide-react'
 import type { VideoFile } from '../types'
 import chunkedUploader from '../lib/chunkedUploader'
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Key, Save, ExternalLink, AlertCircle, CheckCircle } from 'lucide-react'
 
@@ -12,56 +12,47 @@ interface APIKey {
 }
 
 const APIKeysSettings = () => {
-  const [apiKeys, setApiKeys] = useState<APIKey[]>([
+  const initialKeys: APIKey[] = [
     {
       name: 'Gemini API',
-      key: '',
+      key: localStorage.getItem('gemini_api_key') || '',
       url: 'https://ai.google.dev/tutorials/setup',
       description: 'Used for scene analysis and content understanding',
       storageKey: 'gemini_api_key',
     },
     {
       name: 'Supabase URL',
-      key: '',
+      key: localStorage.getItem('supabase_url') || '',
       url: 'https://supabase.com/dashboard',
       description: 'Your Supabase project URL',
       storageKey: 'supabase_url',
     },
     {
       name: 'Supabase Anon Key',
-      key: '',
+      key: localStorage.getItem('supabase_anon_key') || '',
       url: 'https://supabase.com/dashboard',
       description: 'Your Supabase anonymous key',
       storageKey: 'supabase_anon_key',
     },
     {
       name: 'Firebase API Key',
-      key: '',
+      key: localStorage.getItem('firebase_api_key') || '',
       url: 'https://console.firebase.google.com/',
       description: 'Used for authentication and storage',
       storageKey: 'firebase_api_key',
     },
     {
       name: 'OpenAI API Key',
-      key: '',
+      key: localStorage.getItem('openai_api_key') || '',
       url: 'https://platform.openai.com/api-keys',
       description: 'Optional: Used for advanced voiceovers',
       storageKey: 'openai_api_key',
     }
-  ]);
+  ];
+  const [apiKeys, setApiKeys] = useState<APIKey[]>(initialKeys);
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-
-  // Load saved keys on component mount
-  useEffect(() => {
-    const loadedKeys = apiKeys.map(key => {
-      const savedValue = localStorage.getItem(key.storageKey) || '';
-      return { ...key, key: savedValue };
-    });
-    
-    setApiKeys(loadedKeys);
-  }, []);
 
   const handleKeyChange = (index: number, value: string) => {
     const updatedKeys = [...apiKeys];

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Settings, Clock, Scissors, Globe, Youtube, Zap, ChevronDown, Mic, Music } from 'lucide-react'
+import { Settings, Clock, Scissors, Globe, Youtube, Zap, ChevronDown, Music } from 'lucide-react'
 import { useState } from 'react'
 import type { RecapSettings } from '../types'
 import AudioSettingsPanel from './AudioSettingsPanel'
@@ -28,7 +28,7 @@ const RecapSettingsComponent = ({
   const [expandAdvanced, setExpandAdvanced] = useState(false)
   const [expandAudio, setExpandAudio] = useState(false)
   
-  const handleChange = (field: keyof RecapSettings, value: any) => {
+  const handleChange = (field: keyof RecapSettings, value: string | number | boolean) => {
     onSettingsChange({
       ...settings,
       [field]: value

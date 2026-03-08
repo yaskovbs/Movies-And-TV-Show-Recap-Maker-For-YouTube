@@ -22,8 +22,8 @@ const AuthPage = () => {
       console.log('reCAPTCHA token:', token); // Send to backend for verification if needed
       await createUserWithEmailAndPassword(auth, email, password);
       navigate('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     }
   };
 
@@ -32,7 +32,7 @@ const AuthPage = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       navigate('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
     }
   };
