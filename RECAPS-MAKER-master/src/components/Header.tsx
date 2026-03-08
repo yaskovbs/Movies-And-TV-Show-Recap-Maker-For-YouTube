@@ -39,7 +39,7 @@ const Header = ({ apiKey, onApiKeyChange }: HeaderProps) => {
               <Film className="h-8 w-8 text-blue-400 ml-3" />
               <div className="text-right">
                 <h1 className="text-xl font-bold">Movies & TV Recaps</h1>
-                <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות</p>
+                <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות לרשתות החברתיות שלי</p>
               </div>
             </motion.div>
           </Link>

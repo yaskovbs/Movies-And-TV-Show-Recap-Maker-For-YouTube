@@ -299,7 +299,7 @@ const HomePage = ({ apiKey }: HomePageProps) => {
             יוצר סיכומי וידאו
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            הפלטפורמה המתקדמת ביותר ליצירת סיכומי וידאו מקצועיים לסרטים וסדרות באמצעות בינה מלאכותית של Google Gemini
+            הפלטפורמה המתקדמת ביותר ליצירת סיכומי וידאו מקצועיים לסרטים וסדרות לרשתות החברתיות שלי באמצעות בינה מלאכותית של Google Gemini
           </p>
         </motion.div>
       </section>

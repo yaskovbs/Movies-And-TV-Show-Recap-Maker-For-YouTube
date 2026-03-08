@@ -27,7 +27,7 @@ const Footer = () => {
                 <Film className="h-8 w-8 text-blue-400 ml-3" />
                 <div className="text-right">
                   <h1 className="text-xl font-bold">Movies & TV Recaps</h1>
-                  <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות</p>
+                  <p className="text-sm text-gray-400">יוצר סיכומי סרטים וסדרות לרשתות החברתיות שלי</p>
                 </div>
               </div>
             </Link>
@@ -94,7 +94,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-base text-gray-400 order-2 md:order-1 mt-4 md:mt-0">&copy; {new Date().getFullYear()} Movies & TV Recaps Maker Hub. כל הזכויות שמורות.</p>
+          <p className="text-base text-gray-400 order-2 md:order-1 mt-4 md:mt-0">&copy; {new Date().getFullYear()} Movies And TV Shows Recaps Maker For My Social Networks. כל הזכויות שמורות.</p>
           <div className="order-1 md:order-2">
             <a 
               href="https://youtube.com/@movies_and_tv_show_recap?si=923kRYoO3xRjHPu6"
