@@ -60,7 +60,8 @@ class FFmpegService {
   private initWorker() {
     try {
       // Files in public directory are served at root path, so use direct path
-      this.worker = new Worker('/ffmpeg-worker.js', { type: 'module' });
+      // Note: classic worker (not module) because ffmpeg-worker.js uses importScripts
+      this.worker = new Worker('/ffmpeg-worker.js');
       this.setupWorkerListeners();
     } catch (error) {
       console.error('Failed to initialize FFmpeg worker:', error);
