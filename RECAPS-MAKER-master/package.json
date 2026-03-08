@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copy-ffmpeg": "node -e \"const fs=require('fs');[['node_modules/@ffmpeg/core/dist/ffmpeg-core.js','public/ffmpeg-core.js'],['node_modules/@ffmpeg/core/dist/ffmpeg-core.wasm','public/ffmpeg-core.wasm'],['node_modules/@ffmpeg/core/dist/ffmpeg-core.worker.js','public/ffmpeg-core.worker.js'],['node_modules/@ffmpeg/ffmpeg/dist/ffmpeg.min.js','public/ffmpeg.min.js']].forEach(([s,d])=>{fs.copyFileSync(s,d);console.log('Copied',d)})\"",
+    "postinstall": "npm run copy-ffmpeg"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.11.0",

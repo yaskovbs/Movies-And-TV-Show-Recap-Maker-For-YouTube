@@ -61,7 +61,8 @@ class FFmpegService {
 
   private initWorker() {
     try {
-      this.worker = new Worker(new URL('/ffmpeg-worker.js', import.meta.url), { type: 'module' });
+      // Classic worker (no module type) — required because ffmpeg-worker.js uses importScripts()
+      this.worker = new Worker('/ffmpeg-worker.js');
       this.setupWorkerListeners();
     } catch (error) {
       console.error('Failed to initialize FFmpeg worker:', error);
