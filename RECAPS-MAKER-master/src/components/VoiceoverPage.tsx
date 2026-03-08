@@ -116,8 +116,7 @@ const VoiceoverPage = () => {
         }, 500);
       };
       
-      utterance.onerror = (e) => {
-        console.error('Speech synthesis error:', e);
+      utterance.onerror = () => {
         if (recorder.state === 'recording') recorder.stop();
         throw new Error('אירעה שגיאה במהלך יצירת הדיבור.');
       }
@@ -125,9 +124,10 @@ const VoiceoverPage = () => {
       recorder.start();
       window.speechSynthesis.speak(utterance);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error downloading audio:', error);
-      alert(error.message || 'הורדת האודיו נכשלה או בוטלה.');
+      const message = error instanceof Error ? error.message : 'הורדת האודיו נכשלה או בוטלה.';
+      alert(message);
       setIsDownloading(false);
     }
   };
@@ -136,7 +136,7 @@ const VoiceoverPage = () => {
     try {
       const languageName = new Intl.DisplayNames(['en'], { type: 'language' }).of(langCode.split('-')[0]);
       return `${languageName} (${langCode})`;
-    } catch (e) {
+    } catch (_e) {
       return langCode;
     }
   };

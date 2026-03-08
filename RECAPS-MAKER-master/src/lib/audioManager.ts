@@ -1,5 +1,4 @@
 // Audio Manager service for handling music and voiceover
-import { supabase } from './supabase';
 
 // Emotion to music mapping
 interface EmotionTrack {
@@ -161,7 +160,7 @@ class AudioManager {
    */
   private initAudioContext(): AudioContext {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.audioContext = new (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
     }
     return this.audioContext;
   }
@@ -335,6 +334,7 @@ class AudioManager {
         }
         
         const _googleApiKey = _voiceSettings.apiKey;
+        void _googleApiKey;
         
         // Create a mock response for demonstration purposes
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -354,6 +354,7 @@ class AudioManager {
         }
         
         const _elevenLabsApiKey = _voiceSettings.apiKey;
+        void _elevenLabsApiKey;
         
         // Create a mock response for demonstration purposes
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -387,14 +388,14 @@ class AudioManager {
   /**
    * Save audio settings to localStorage
    */
-  public saveAudioSettings(settings: any): void {
+  public saveAudioSettings(settings: Record<string, unknown>): void {
     localStorage.setItem('audio_settings', JSON.stringify(settings));
   }
   
   /**
    * Load audio settings from localStorage
    */
-  public loadAudioSettings(): any {
+  public loadAudioSettings(): Record<string, unknown> | null {
     const settings = localStorage.getItem('audio_settings');
     return settings ? JSON.parse(settings) : null;
   }

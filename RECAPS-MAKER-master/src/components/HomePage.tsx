@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Users, Zap, Shield, Cpu, FileText, Brain } from 'lucide-react'
-import VideoUploader from './VideoUploader'
 import EnhancedVideoUploader from './EnhancedVideoUploader'
 import RecapSettings from './RecapSettings'
 import ProcessingStatus from './ProcessingStatus'
@@ -35,10 +34,10 @@ const getVideoDuration = (file: File): Promise<number> => {
 };
 
 interface HomePageProps {
-  apiKey: string;
+  apiKey?: string;
 }
 
-const HomePage = ({ apiKey }: HomePageProps) => {
+const HomePage = (_props: HomePageProps) => {
   const [selectedFile, setSelectedFile] = useState<VideoFile | null>(null)
   const [settings, setSettings] = useState<RecapSettingsType>({
     duration: 30,
@@ -179,11 +178,11 @@ const HomePage = ({ apiKey }: HomePageProps) => {
       // Clean up FFmpeg files
       await ffmpegService.cleanFiles();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("An error occurred during recap creation:", error);
       let userMessage = 'שגיאה לא ידועה התרחשה. אנא נסה שוב.';
       
-      const errorMessage = typeof error?.message === 'string' ? error.message : "";
+      const errorMessage = error instanceof Error ? error.message : "";
 
       if (processingStatus?.stage === 'loading_engine') {
         userMessage = 'שגיאה קריטית בטעינת מנוע הווידאו. בדוק את חיבור האינטרנט ורענן את הדף.';

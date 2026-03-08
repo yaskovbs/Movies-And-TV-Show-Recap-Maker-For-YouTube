@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Film, Clock, Sparkles, Tag, AlertCircle, Loader, CheckCircle, Copy } from 'lucide-react'
+import { Brain, Film, Clock, Sparkles, Tag, AlertCircle, Loader, Copy } from 'lucide-react'
 import contentAnalyzer from '../lib/contentAnalyzer'
 import type { VideoFile } from '../types'
 
@@ -136,19 +136,11 @@ const ContentAnalysisPanel = ({ videoFile, onScriptGenerated }: ContentAnalysisP
       });
       
       if (onScriptGenerated) {
-        // Pass the script and emotional tone to the parent component
-        onScriptGenerated(script);
-        
-        // If we have a parent component that can handle the full analysis data
-        if (typeof onScriptGenerated === 'function' && onScriptGenerated.length > 1) {
-          const analysisData = {
-            script,
-            emotionalTone: analysisState.emotionalTone || 'neutral',
-            genre: analysisState.genre || 'unspecified'
-          };
-          // @ts-ignore - We're checking if the function can accept more parameters
-          onScriptGenerated(script, analysisData);
-        }
+        // Pass the script and the analysis data to the parent component
+        onScriptGenerated(script, {
+          emotionalTone: analysisState.emotionalTone || 'neutral',
+          genre: analysisState.genre || 'unspecified'
+        });
       }
     } catch (error) {
       setAnalysisState({
@@ -357,7 +349,7 @@ const ContentAnalysisPanel = ({ videoFile, onScriptGenerated }: ContentAnalysisP
                 <label className="block text-sm font-medium text-gray-400 mb-1">סגנון</label>
                 <select
                   value={scriptStyle}
-                  onChange={(e) => setScriptStyle(e.target.value as any)}
+                  onChange={(e) => setScriptStyle(e.target.value as 'formal' | 'casual' | 'dramatic')}
                   className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
                 >
                   <option value="casual">יומיומי</option>

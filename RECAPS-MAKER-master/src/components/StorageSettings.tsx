@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Database, HardDrive, Save, Settings, Info } from 'lucide-react'
+import { Database, HardDrive, Save, Info } from 'lucide-react'
 
 interface StorageSettings {
   chunkSize: number; // MB
@@ -32,7 +32,7 @@ const StorageSettingsComponent = () => {
     }
   }, []);
 
-  const handleSettingChange = (key: keyof StorageSettings, value: any) => {
+  const handleSettingChange = (key: keyof StorageSettings, value: string | number) => {
     setSettings(prev => ({
       ...prev,
       [key]: value

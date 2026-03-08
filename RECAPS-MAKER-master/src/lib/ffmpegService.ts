@@ -37,13 +37,15 @@ interface AudioResult {
 type ProgressCallback = (progress: number) => void;
 type StatusCallback = (status: Partial<ProcessingStatus>) => void;
 type ErrorCallback = (error: string) => void;
+// CompleteCallback is a utility type kept for potential future use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type CompleteCallback<T> = (result: T) => void;
 
 class FFmpegService {
   private static instance: FFmpegService;
   private worker: Worker | null = null;
   private isReady = false;
-  private callbacks: Map<string, Function[]> = new Map();
+  private callbacks: Map<string, ((...args: unknown[]) => void)[]> = new Map();
   private activeOperations: Set<string> = new Set();
 
   private constructor() {
@@ -143,7 +145,7 @@ class FFmpegService {
     };
   }
 
-  private executeCallbacks(type: string, args: any[]) {
+  private executeCallbacks(type: string, args: unknown[]) {
     const callbacks = this.callbacks.get(type) || [];
     callbacks.forEach(callback => {
       try {
@@ -154,14 +156,14 @@ class FFmpegService {
     });
   }
 
-  private addCallback(type: string, callback: Function) {
+  private addCallback(type: string, callback: (...args: unknown[]) => void) {
     if (!this.callbacks.has(type)) {
       this.callbacks.set(type, []);
     }
     this.callbacks.get(type)?.push(callback);
   }
 
-  private removeCallback(type: string, callback: Function) {
+  private removeCallback(type: string, callback: (...args: unknown[]) => void) {
     if (!this.callbacks.has(type)) return;
     
     const callbacks = this.callbacks.get(type) || [];
@@ -205,7 +207,7 @@ class FFmpegService {
   public async analyzeVideo(
     file: File,
     onProgress?: ProgressCallback,
-    onError?: ErrorCallback
+    _onError?: ErrorCallback
   ): Promise<VideoMetadata> {
     if (this.activeOperations.has('analyze')) {
       throw new Error('Another analysis operation is already in progress');
@@ -223,7 +225,7 @@ class FFmpegService {
       const onComplete = (metadata: VideoMetadata) => {
         resolve(metadata);
         this.removeCallback('analysis-complete', onComplete);
-        this.removeCallback('error', onError);
+        this.removeCallback('error', onErrorCallback);
         if (onProgress) this.removeCallback('progress', onProgress);
       };
 
@@ -249,11 +251,11 @@ class FFmpegService {
 
   public async processVideo(
     file: File,
-    settings: any,
+    settings: Record<string, unknown>,
     videoDuration: number,
     onProgress?: ProgressCallback,
     onStatus?: StatusCallback,
-    onError?: ErrorCallback
+    _onError?: ErrorCallback
   ): Promise<ProcessingResult> {
     if (this.activeOperations.has('process')) {
       throw new Error('Another processing operation is already in progress');
@@ -310,7 +312,7 @@ class FFmpegService {
     outputName: string = 'combined.mp4',
     onProgress?: ProgressCallback,
     onStatus?: StatusCallback,
-    onError?: ErrorCallback
+    _onError?: ErrorCallback
   ): Promise<CombineResult> {
     if (this.activeOperations.has('combine')) {
       throw new Error('Another combine operation is already in progress');
@@ -360,7 +362,7 @@ class FFmpegService {
     format: 'mp3' | 'aac' = 'mp3',
     onProgress?: ProgressCallback,
     onStatus?: StatusCallback,
-    onError?: ErrorCallback
+    _onError?: ErrorCallback
   ): Promise<AudioResult> {
     if (this.activeOperations.has('extract-audio')) {
       throw new Error('Another audio extraction operation is already in progress');
@@ -408,8 +410,8 @@ class FFmpegService {
   public async generateVoiceover(
     text: string,
     onStatus?: StatusCallback,
-    onError?: ErrorCallback
-  ): Promise<any> {
+    _onError?: ErrorCallback
+  ): Promise<unknown> {
     if (this.activeOperations.has('generate-voiceover')) {
       throw new Error('Another voiceover generation operation is already in progress');
     }
@@ -423,7 +425,7 @@ class FFmpegService {
 
       if (onStatus) this.addCallback('status', onStatus);
 
-      const onComplete = (result: any) => {
+      const onComplete = (result: unknown) => {
         resolve(result);
         this.removeCallback('voiceover-status', onComplete);
         this.removeCallback('error', onErrorCallback);
@@ -451,7 +453,7 @@ class FFmpegService {
 
   public async cleanFiles(
     files: string[] = [],
-    onError?: ErrorCallback
+    _onError?: ErrorCallback
   ): Promise<void> {
     if (!this.isReady) {
       await this.init();
