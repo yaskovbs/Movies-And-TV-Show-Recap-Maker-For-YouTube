@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copy-ffmpeg": "node -e \"const fs=require('fs');const src='node_modules/@ffmpeg/core/dist';const dst='public';['ffmpeg-core.js','ffmpeg-core.wasm','ffmpeg-core.worker.js'].forEach(f=>{fs.copyFileSync(src+'/'+f,dst+'/'+f);console.log('Copied',f)})\"",
+    "postinstall": "npm run copy-ffmpeg"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.11.0",

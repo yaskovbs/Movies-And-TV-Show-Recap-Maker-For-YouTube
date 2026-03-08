@@ -28,6 +28,9 @@ yarn-error.log*
 
 # downloaded assets
 /public/ffmpeg-core
+/public/ffmpeg-core.js
+/public/ffmpeg-core.wasm
+/public/ffmpeg-core.worker.js
 
 # OS generated files
 .DS_Store
